@@ -8,6 +8,10 @@ public class GridUtil : MonoBehaviour
 {
     public static GridUtil instance;
 
+    // device properties
+    private float screen_width;
+    private float screen_height;
+
     // grid properties
     [HideInInspector]
     public bool initialized = false;
@@ -35,8 +39,22 @@ public class GridUtil : MonoBehaviour
     void Start()
     {
         // Initialize parameters
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            screen_width = 1920f;
+            screen_height = 1080f;
+        }
+        else
+        {
+            screen_width = (float)Screen.width;
+            screen_height = (float)Screen.height;
+        }
+        Debug.Log(screen_width);
+        Debug.Log(screen_height);
+        Debug.Log(Screen.width);
+        Debug.Log(Screen.height);
         object_pooler = ObjectPooler.instance;
-        Vector3 coord_ratio = Camera.main.ScreenToWorldPoint(new Vector3((float)Screen.width / 2f + 1f, 0f, 0f));
+        Vector3 coord_ratio = Camera.main.ScreenToWorldPoint(new Vector3((float)screen_width / 2f + 1f, 0f, 0f));
         ratio = coord_ratio.x;
     }
 
@@ -59,10 +77,10 @@ public class GridUtil : MonoBehaviour
             }
         }
 
-        board_width = Mathf.Max(480f, Screen.height - 480f);
+        board_width = Mathf.Max(480f, screen_height - 480f);
         grid_width = board_width / (float)grid_num;
         L = 160f;
-        B = ((float)Screen.height - board_width) * 0.6f;
+        B = ((float)screen_height - board_width) * 0.6f;
         R = L + board_width;
         U = B + board_width;
         UL = new Vector3(L, U, 15);
@@ -110,7 +128,7 @@ public class GridUtil : MonoBehaviour
 
     public Vector3 GetPositionByOrigin(float x, float y, float z=-1)
     {
-        float origin_x = R + 40f, origin_y = (float)Screen.height / 2;
+        float origin_x = R + 40f, origin_y = (float)screen_height / 2;
         Vector3 result = Camera.main.ScreenToWorldPoint(new Vector3(origin_x + grid_width * x, origin_y + grid_width * y, 0f));
         result.z = (z < 0) ? z_depth : z;
         return result;
