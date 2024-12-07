@@ -85,6 +85,7 @@ public class Board : MonoBehaviour
                 if (grids[i][j] == -2)
                 {
                     RecoverGrid(i, j);
+                    removed_grids.Remove(new Vector2Int(i, j));
                 }
             }
         }
