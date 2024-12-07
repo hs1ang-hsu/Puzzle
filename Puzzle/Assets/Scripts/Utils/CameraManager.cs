@@ -7,7 +7,7 @@ public class CameraManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        float target_aspect = 2560f / 1440f;
+        float target_aspect = 1920f / 1080f;
         float window_aspect = (float)Screen.width / (float)Screen.height;
         float scale_height = window_aspect / target_aspect;
 

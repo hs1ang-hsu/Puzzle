@@ -24,7 +24,6 @@ public class GridUtil : MonoBehaviour
     private ObjectPooler object_pooler;
 
     // camera
-    public Camera my_camera;
     float ratio;
 
     private void Awake()
@@ -37,7 +36,8 @@ public class GridUtil : MonoBehaviour
     {
         // Initialize parameters
         object_pooler = ObjectPooler.instance;
-        ratio = my_camera.orthographicSize * 2 / (float)Screen.height;
+        Vector3 coord_ratio = Camera.main.ScreenToWorldPoint(new Vector3((float)Screen.width / 2f + 1f, 0f, 0f));
+        ratio = coord_ratio.x;
     }
 
     // Update is called once per frame
@@ -61,7 +61,7 @@ public class GridUtil : MonoBehaviour
 
         board_width = Mathf.Max(480f, Screen.height - 480f);
         grid_width = board_width / (float)grid_num;
-        L = Mathf.Max(120f, 0.1f * (float)Screen.width);
+        L = 160f;
         B = ((float)Screen.height - board_width) * 0.6f;
         R = L + board_width;
         U = B + board_width;
@@ -95,11 +95,6 @@ public class GridUtil : MonoBehaviour
                 grids_pos[i][j] = new Vector3(grids_pos[i][j].x, grids_pos[i][j].y, z_depth);
             }
         initialized = true;
-
-        Debug.Log(grid_width);
-        Debug.Log(grids_pos[0][0]);
-        Debug.Log(grids_pos[0][1]);
-
     }
 
     private void DebugDrawBoard()
