@@ -79,6 +79,8 @@ public class GridUtil : MonoBehaviour
 
         board_width = Mathf.Max(480f, screen_height - 480f);
         grid_width = board_width / (float)grid_num;
+        Debug.Log(board_width);
+        Debug.Log(grid_width);
         L = 160f;
         B = ((float)screen_height - board_width) * 0.6f;
         R = L + board_width;
