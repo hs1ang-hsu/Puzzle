@@ -39,20 +39,8 @@ public class GridUtil : MonoBehaviour
     void Start()
     {
         // Initialize parameters
-        if (Application.platform == RuntimePlatform.WebGLPlayer)
-        {
-            screen_width = 1920f;
-            screen_height = 1080f;
-        }
-        else
-        {
-            screen_width = (float)Screen.width;
-            screen_height = (float)Screen.height;
-        }
-        Debug.Log(screen_width);
-        Debug.Log(screen_height);
-        Debug.Log(Screen.width);
-        Debug.Log(Screen.height);
+        screen_width = (float)Screen.width;
+        screen_height = (float)Screen.height;
         object_pooler = ObjectPooler.instance;
         Vector3 coord_ratio = Camera.main.ScreenToWorldPoint(new Vector3((float)screen_width / 2f + 1f, 0f, 0f));
         ratio = coord_ratio.x;
@@ -77,11 +65,9 @@ public class GridUtil : MonoBehaviour
             }
         }
 
-        board_width = Mathf.Max(480f, screen_height - 480f);
+        board_width = screen_height * 0.55f;
         grid_width = board_width / (float)grid_num;
-        Debug.Log(board_width);
-        Debug.Log(grid_width);
-        L = 160f;
+        L = 0.08f * screen_width;
         B = ((float)screen_height - board_width) * 0.6f;
         R = L + board_width;
         U = B + board_width;

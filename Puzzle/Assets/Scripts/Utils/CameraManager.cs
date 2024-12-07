@@ -9,8 +9,6 @@ public class CameraManager : MonoBehaviour
     {
         float target_aspect = 1920f / 1080f;
         float window_aspect = (float)Screen.width / (float)Screen.height;
-        if (Application.platform == RuntimePlatform.WebGLPlayer)
-            window_aspect = 1920f / 1080f;
         float scale_height = window_aspect / target_aspect;
 
         Camera camera = GetComponent<Camera>();
