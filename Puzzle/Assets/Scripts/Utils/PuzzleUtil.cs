@@ -2,50 +2,34 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.U2D;
 
 public enum PuzzleType
 {
-    C,
-    O,
-    T,
-    Z,
-    V,
-    L,
-    S,
-    B
+    Polyomino,
+    Jigsaw,
+    Sliding
 }
 
 public class PuzzleUtil : MonoBehaviour
 {
-    public static PuzzleUtil instance;
-
     // instances
-    private GridUtil grid_util;
-    private GameManager GM;
+    public GridUtil grid_util;
+    public ObjectPooler object_pooler;
+
+    // sprites
+    public SpriteAtlas atlas_puzzles;
 
     // puzzle
     public float z_depth = 10f;
     public List<GameObject> obj_puzzles;
     private LRU<GameObject> puzzle_order;
     public Transform puzzle_parent;
-    private bool initialized;
-    private Vector2[] initial_pos;
-
-    private void Awake()
-    {
-        instance = this;
-    }
+    private List<Vector2> initial_pos;
 
     // Start is called before the first frame update
     void Start()
     {
-        // initialize parameters
-        initialized = false;
-
-        // class instance
-        grid_util = GridUtil.instance;
-        GM = GameManager.instance;
-
         // initialize puzzles
         if (obj_puzzles != null)
         {
@@ -55,55 +39,36 @@ public class PuzzleUtil : MonoBehaviour
                 puzzle_order.Put(obj_puzzle);
             }
         }
-        if (GM.editor_mode)
-        {
-            obj_puzzles = new List<GameObject>();
-            initial_pos = new Vector2[8] {
-                new Vector2(0f, 4.5f), new Vector2(3.5f, 4.5f), new Vector2(7f, 4.5f),
-                new Vector2(0f, 1f), new Vector2(3.5f, 1f), new Vector2(7f, 1f),
-                new Vector2(0f, -2.5f), new Vector2(4.5f, -2.5f)
-            };
-        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (GM.editor_mode && grid_util.initialized && !initialized)
-        {
-            initialized = true;
-            int idx = 0;
-            puzzle_order = new LRU<GameObject>(Enum.GetNames(typeof(PuzzleType)).Length);
-            foreach (PuzzleType t in Enum.GetValues(typeof(PuzzleType)))
-            {
-                StartCoroutine(InitializePuzzle(t, initial_pos[idx]));
-                idx++;
-            }
-            InitializePuzzlePos();
-        }
     }
 
-    private IEnumerator InitializePuzzle(PuzzleType type, Vector2 pos)
+
+    public void GeneratePuzzles(List<PolyominoPuzzleType> required_puzzle_types, List<Vector2> initial_pos)
+    {
+        if (initial_pos.Count != required_puzzle_types.Count) Debug.LogError("The initial positions does not match the number of puzzles ");
+        this.initial_pos = initial_pos;
+        puzzle_order = new LRU<GameObject>(required_puzzle_types.Count);
+        foreach (var puzzle_type in required_puzzle_types)
+        {
+            StartCoroutine(InitializePuzzle(puzzle_type));
+        }
+        InitializePuzzlePos();
+    }
+
+    private IEnumerator InitializePuzzle(PolyominoPuzzleType type)
     {
         // Create GameObject
-        GameObject obj_puzzle = new GameObject();
-        obj_puzzle.tag = "puzzle";
-        obj_puzzle.transform.parent = puzzle_parent;
+        GameObject obj_puzzle = object_pooler.SpawnFromPool("puzzle", Vector3.zero, Quaternion.identity, puzzle_parent);
 
         // Component Puzzle
-        Puzzle puzzle = obj_puzzle.AddComponent<Puzzle>();
-        puzzle.Initialize(type, z_depth);
-        obj_puzzle.name = puzzle.obj_name;
-
-        // Component collider
-        Rigidbody2D rigid_body = obj_puzzle.AddComponent<Rigidbody2D>();
-        rigid_body.constraints = RigidbodyConstraints2D.FreezeAll;
-        CompositeCollider2D collider = obj_puzzle.AddComponent<CompositeCollider2D>();
-        collider.geometryType = CompositeCollider2D.GeometryType.Polygons;
+        obj_puzzle.GetComponent<PolyominoPuzzle>().Initialize(type, z_depth, ref atlas_puzzles);
+        obj_puzzle.name = obj_puzzle.GetComponent<PolyominoPuzzle>().obj_name;
 
         // Draw grids
-        puzzle.children = grid_util.GetPuzzleGrids(puzzle, obj_puzzle.transform, 0f);
-        UpdatePuzzle(puzzle);
         obj_puzzles.Add(obj_puzzle);
         puzzle_order.Put(obj_puzzle);
 
@@ -125,26 +90,8 @@ public class PuzzleUtil : MonoBehaviour
         float z = z_depth;
         for (int i=0; i<sorted_puzzles.Length; i++)
         {
-            sorted_puzzles[i].GetComponent<Puzzle>().UpdateDepth(z);
+            sorted_puzzles[i].GetComponent<PolyominoPuzzle>().UpdateDepth(z);
             z += 1f;
-        }
-    }
-
-    private void UpdatePuzzle(Puzzle puzzle)
-    {
-        int n = puzzle.size;
-        for (int i=0; i<n; i++)
-        {
-            for (int j=0; j<n; j++)
-            {
-                if (puzzle.shape[i,j] == 0)
-                {
-                    puzzle.children[i][j].SetActive(false);
-                } else
-                {
-                    puzzle.children[i][j].SetActive(true);
-                }
-            }
         }
     }
 }

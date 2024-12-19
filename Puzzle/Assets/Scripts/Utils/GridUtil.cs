@@ -1,39 +1,33 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
+using static UnityEditor.Searcher.SearcherWindow.Alignment;
 using static UnityEngine.Rendering.DebugUI.Table;
 using static UnityEngine.UI.Image;
 
 public class GridUtil : MonoBehaviour
 {
-    public static GridUtil instance;
-
     // device properties
     private float screen_width;
     private float screen_height;
 
     // grid properties
-    [HideInInspector]
-    public bool initialized = false;
+    [HideInInspector] public bool initialized = false;
     public int grid_num = 7;
     private Vector3 UL, UR, BL, BR;
     private float L, R, B, U;
     private float board_width;
-    private float grid_width;
+    public float image_size = 2.56f;
+    [HideInInspector] public float grid_width = 64;
     private float grid_width_scale;
     private List<List<Vector3>> grids_pos;
     private float z_depth = 20f;
 
     // gameObject
-    private ObjectPooler object_pooler;
+    public ObjectPooler object_pooler;
 
     // camera
     float ratio;
-
-    private void Awake()
-    {
-        instance = this;
-    }
 
     // Start is called before the first frame update
     void Start()
@@ -41,7 +35,6 @@ public class GridUtil : MonoBehaviour
         // Initialize parameters
         screen_width = (float)Screen.width;
         screen_height = (float)Screen.height;
-        object_pooler = ObjectPooler.instance;
         Vector3 coord_ratio = Camera.main.ScreenToWorldPoint(new Vector3((float)screen_width / 2f + 1f, 0f, 0f));
         ratio = coord_ratio.x;
     }
@@ -93,7 +86,7 @@ public class GridUtil : MonoBehaviour
             }
         }
 
-        grid_width_scale = ScreenToWorld(grid_width) / 5.12f;
+        grid_width_scale = ScreenToWorld(grid_width) / image_size;
         for (int i = 0; i < grid_num; i++)
             for (int j = 0; j < grid_num; j++)
             {
@@ -132,10 +125,12 @@ public class GridUtil : MonoBehaviour
         return result;
     }
 
-    public Vector3 ToGridPoint(float mx, float my, out int grid_row, out int grid_col, Vector3 point, float z)
+    public Vector3 ToGridPoint(float mx, float my, out int grid_row, out int grid_col, Vector3 point, float z, float shift_x = 0f, float shift_y = 0f)
     {
         if (!initialized) Debug.LogError("The grids are not initialized!");
 
+        mx += shift_x;
+        my += shift_y;
         if (mx < L - grid_width/2 || mx > R - grid_width/2 || my < B + grid_width/2 || my > U + grid_width/2)
         {
             grid_row = -1;
@@ -148,8 +143,8 @@ public class GridUtil : MonoBehaviour
         my = Mathf.Clamp(my, B + grid_width, U);
         grid_col = (int)Mathf.Round((mx - L) / grid_width);
         grid_row = (int)Mathf.Round((U - my) / grid_width);
-        float x = L + grid_width * grid_col;
-        float y = U - grid_width * grid_row;
+        float x = L + grid_width * grid_col - shift_x;
+        float y = U - grid_width * grid_row - shift_y;
         Vector3 result = Camera.main.ScreenToWorldPoint(new Vector3(x, y, 0f));
         result.z = (z < 0) ? z_depth : z;
         return result;
@@ -186,7 +181,7 @@ public class GridUtil : MonoBehaviour
         return obj_grids;
     }
 
-    public List<List<GameObject>> GetPuzzleGrids(Puzzle puzzle, Transform grids_parent, float z)
+    public List<List<GameObject>> GetPuzzleGrids(PolyominoPuzzle puzzle, Transform grids_parent, float z)
     {
         if (!initialized) Debug.LogError("The grids are not initialized!");
         int n = puzzle.size;
@@ -208,5 +203,50 @@ public class GridUtil : MonoBehaviour
             }
         }
         return obj_puzzle_grids;
+    }
+
+    public Vector3 GetGridScale()
+    {
+        return new Vector3(grid_width_scale, grid_width_scale, 1f);
+    }
+
+    public Mesh GetPuzzleMesh(int[,] shape, int size)
+    {
+        Mesh mesh_puzzle = new Mesh();
+
+        List<int> ref_triangles = new List<int>() { 0,1,3, 0,3,2 };
+        List<Vector3> ref_vertices = new List<Vector3>()
+        {
+            new Vector3(image_size, 0, 0),
+            new Vector3(0, -image_size, 0),
+            new Vector3(image_size, -image_size, 0)
+        };
+
+        int idx_e = 0;
+        List<int> triangles = new List<int>();
+        List<Vector3> vertices = new List<Vector3>();
+        for (int i=0; i<size; i++)
+        {
+            for (int j=0; j<size; j++)
+            {
+                if (shape[i,j] == 1)
+                {
+                    Vector3 pos = new Vector3(j * image_size, -i * image_size, 0);
+                    vertices.Add(pos);
+                    foreach (var ref_v in ref_vertices)
+                    {
+                        vertices.Add(pos + ref_v);
+                    }
+                    foreach (var ref_t in ref_triangles)
+                    {
+                        triangles.Add(idx_e + ref_t);
+                    }
+                    idx_e += 4;
+                }
+            }
+        }
+        mesh_puzzle.vertices = vertices.ToArray();
+        mesh_puzzle.triangles = triangles.ToArray();
+        return mesh_puzzle;
     }
 }

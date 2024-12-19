@@ -11,10 +11,8 @@ public class ObjectPooler : MonoBehaviour
         public GameObject prefab;
     }
 
-    public static ObjectPooler instance;
     private void Awake()
     {
-        instance = this;
         pool_dict = new Dictionary<string, Queue<GameObject>>();
 
         foreach (Pool pool in pools)

@@ -2,16 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class SlidingPuzzle : MonoBehaviour
 {
-    public bool editor_mode = false;
-    public bool edit_board_mode = false;
-
-    private void Awake()
-    {
-
-    }
-
     // Start is called before the first frame update
     void Start()
     {

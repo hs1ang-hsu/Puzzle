@@ -6,8 +6,8 @@ using UnityEngine;
 public class Board : MonoBehaviour
 {
     // instance
-    private GridUtil grid_util;
-    private GameManager GM;
+    public GridUtil grid_util;
+    public GameManager game_manager;
 
     // parameters
     public int grid_num = 7;
@@ -33,21 +33,14 @@ public class Board : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        grid_util = GridUtil.instance;
-        GM = GameManager.instance;
-
         removed_grids = new LRU<Vector2Int>(removed_limit);
-
-        if (GM.editor_mode)
-        {
-            obj_grids = new List<List<GameObject>>();
-        }
+        obj_grids = new List<List<GameObject>>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (GM.editor_mode && !initialized)
+        if (!initialized)
         {
             initialized = true;
             grid_util.InitializeGrids(grid_num);
