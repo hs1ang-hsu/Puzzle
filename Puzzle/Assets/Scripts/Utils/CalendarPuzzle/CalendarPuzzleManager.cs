@@ -169,6 +169,23 @@ public class CalendarPuzzleManager : MonoBehaviour
 
     public void OnButtonSolveClicked()
     {
-        //puzzle_util
+        int[,] state = board.GetPolyominoPuzzleBoardState(out bool is_board_valid, out List<PuzzleType> unused_puzzles);
+        if (!is_board_valid)
+        {
+            // show dialog
+            throw new NotImplementedException();
+        }
+
+        
+
+        string s = "";
+        for (int i=0; i<grid_num; i++)
+        {
+            for (int j=0; j<grid_num; j++)
+            {
+                s += state[i, j].ToString() + " \n"[(j == grid_num - 1) ? 1 : 0];
+            }
+        }
+        Debug.Log(s);
     }
 }

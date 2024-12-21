@@ -1359,7 +1359,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   grid_util: {fileID: 583020476}
-  puzzle_util: {fileID: 0}
+  puzzle_util: {fileID: 1206310223}
   game_manager: {fileID: 1841920025}
   grid_num: 7
   removed_limit: 2

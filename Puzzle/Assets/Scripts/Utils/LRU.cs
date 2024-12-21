@@ -55,6 +55,12 @@ public class LRU<T>
         }
     }
 
+    public void Clear()
+    {
+        map.Clear();
+        list.Clear();
+    }
+
     public T[] GetList()
     {
         T[] result = new T[list.Count];

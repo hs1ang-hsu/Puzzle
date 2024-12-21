@@ -13,8 +13,8 @@ public class Puzzle : MonoBehaviour, ISelectableObject, IPooledObject
     // parameters
     [HideInInspector] public int rotation;
     [HideInInspector] public int flip;
-    [HideInInspector] public string obj_name;
     [HideInInspector] public Vector2Int position;
+    [HideInInspector] public string obj_name;
     // properties
     [HideInInspector] public PuzzleType type;
     [HideInInspector] public int[,] shape;
@@ -31,6 +31,9 @@ public class Puzzle : MonoBehaviour, ISelectableObject, IPooledObject
     public virtual void Initialize(PuzzleType type, float z_depth, ref SpriteAtlas atlas_puzzles)
     {
         // initialize puzzle parameters
+        rotation = 0;
+        flip = 0;
+        position = new Vector2Int(-1, -1);
         this.type = type;
         this.z_depth = z_depth;
         PuzzleProperty property = PuzzleProperties.GetProperty(type);
@@ -183,9 +186,6 @@ public class Puzzle : MonoBehaviour, ISelectableObject, IPooledObject
 
     public void OnObjectSpawn()
     {
-        rotation = 0;
-        flip = 0;
-        position = new Vector2Int(-1, -1);
     }
 
     public void Selected()
