@@ -3,29 +3,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class Board : MonoBehaviour
 {
     // instance
     public GridUtil grid_util;
+    public PuzzleUtil puzzle_util;
     public GameManager game_manager;
 
     // parameters
-    public int grid_num = 7;
-    public int removed_limit = 2;
-    public float z_depth = 20f;
-    [HideInInspector]
-    public List<List<int>> grids; // -5: none, -2: removed, -1: normal, 0~7: puzzle type
+    [HideInInspector] public int grid_num;
+    [HideInInspector] public int removed_limit;
+    [HideInInspector] public float z_depth;
+    [HideInInspector] public List<List<int>> grids; // none: -5, removed: -2, normal: -1, puzzle type: >0
     private LRU<Vector2Int> removed_grids;
-    private bool initialized;
-    private int[,] shape = new int[7, 7] {
-        { 1,1,1,1,1,1,0 },
-        { 1,1,1,1,1,1,0 },
-        { 1,1,1,1,1,1,1 },
-        { 1,1,1,1,1,1,1 },
-        { 1,1,1,1,1,1,1 },
-        { 1,1,1,1,1,1,1 },
-        { 1,1,1,0,0,0,0 }
-    };
+    [HideInInspector] public bool initialized;
+    [HideInInspector] public int[,] shape;
 
     // GameObject
     public List<List<GameObject>> obj_grids;
@@ -40,17 +33,18 @@ public class Board : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!initialized)
-        {
-            initialized = true;
-            grid_util.InitializeGrids(grid_num);
-            StartCoroutine(InitializeBoard());
-        }
-
     }
 
-    private IEnumerator InitializeBoard()
+    public IEnumerator InitializeBoard(int[,] shape, int grid_num, int removed_limit, float z_depth)
     {
+        // initialize parameters
+        this.shape = shape;
+        this.grid_num = grid_num;
+        this.removed_limit = removed_limit;
+        this.z_depth = z_depth;
+
+        // generate grids
+        grid_util.InitializeGrids(grid_num);
         removed_grids = new LRU<Vector2Int>(removed_limit, new Vector2Int(-1,-1));
         grids = new List<List<int>>();
         for (int i = 0; i < grid_num; i++)
@@ -66,6 +60,7 @@ public class Board : MonoBehaviour
             grids[6][i] = -5;
 
         obj_grids = grid_util.GetBoardGrids(shape, transform, z_depth);
+        initialized = true;
         yield break;
     }
 
@@ -142,5 +137,13 @@ public class Board : MonoBehaviour
     {
         grids[x][y] = -1;
         obj_grids[x][y].GetComponent<SpriteRenderer>().color = Color.white;
+    }
+
+    public List<List<int>> GetBoardState()
+    {
+        List<List<int>> result = new List<List<int>>();
+
+
+        return result;
     }
 }

@@ -4,12 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 
-public enum PuzzleType
-{
-    Polyomino,
-    Jigsaw,
-    Sliding
-}
 
 public class PuzzleUtil : MonoBehaviour
 {
@@ -47,7 +41,7 @@ public class PuzzleUtil : MonoBehaviour
     }
 
 
-    public void GeneratePuzzles(List<PolyominoPuzzleType> required_puzzle_types, List<Vector2> initial_pos)
+    public void GeneratePuzzles(List<PuzzleType> required_puzzle_types, List<Vector2> initial_pos)
     {
         if (initial_pos.Count != required_puzzle_types.Count) Debug.LogError("The initial positions does not match the number of puzzles ");
         this.initial_pos = initial_pos;
@@ -59,16 +53,16 @@ public class PuzzleUtil : MonoBehaviour
         InitializePuzzlePos();
     }
 
-    private IEnumerator InitializePuzzle(PolyominoPuzzleType type)
+    private IEnumerator InitializePuzzle(PuzzleType type)
     {
         // Create GameObject
         GameObject obj_puzzle = object_pooler.SpawnFromPool("puzzle", Vector3.zero, Quaternion.identity, puzzle_parent);
 
         // Component Puzzle
-        obj_puzzle.GetComponent<PolyominoPuzzle>().Initialize(type, z_depth, ref atlas_puzzles);
-        obj_puzzle.name = obj_puzzle.GetComponent<PolyominoPuzzle>().obj_name;
+        obj_puzzle.GetComponent<Puzzle>().Initialize(type, z_depth, ref atlas_puzzles);
+        obj_puzzle.name = obj_puzzle.GetComponent<Puzzle>().obj_name;
 
-        // Draw grids
+        // Update puzzle to lists
         obj_puzzles.Add(obj_puzzle);
         puzzle_order.Put(obj_puzzle);
 

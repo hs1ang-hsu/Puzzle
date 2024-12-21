@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Unity.Burst.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,14 +13,21 @@ public class CalendarPuzzleManager : MonoBehaviour
     public PuzzleUtil puzzle_util;
     public GridUtil grid_util;
     public GameManager game_manager;
+    public Board board;
+
+    // board settings
+    public SerializableArray _calendar_puzzle_board;
+    private int[,] calendar_puzzle_board;
+    public int grid_num = 7;
+    public int removed_limit = 2;
+    public float z_depth = 20f;
 
     // puzzle settings
     private bool initialized = false;
-    public List<PolyominoPuzzleType> required_puzzle_types;
+    public List<PuzzleType> required_puzzle_types;
     public List<Vector2> initial_pos;
 
     // mouse events
-    [HideInInspector]
     public Image img_edit_board;
     public Button btn_rotate;
     public Button btn_flip;
@@ -33,11 +41,18 @@ public class CalendarPuzzleManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        calendar_puzzle_board = _calendar_puzzle_board.GetArray();
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Initialize board first (grids are also initialized here)
+        if (!board.initialized)
+        {
+            StartCoroutine(board.InitializeBoard(calendar_puzzle_board, grid_num, removed_limit, z_depth));
+        }
+        // After grids are initialized, we generate puzzles
         if (!initialized && grid_util.initialized)
         {
             initialized = true;
@@ -150,5 +165,10 @@ public class CalendarPuzzleManager : MonoBehaviour
             return;
         }
         selected.GetComponent<PolyominoPuzzle>().Rotate();
+    }
+
+    public void OnButtonSolveClicked()
+    {
+        //puzzle_util
     }
 }
