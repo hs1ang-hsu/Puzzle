@@ -1,32 +1,38 @@
 using System;
+using UnityEngine;
 
 [Serializable]
 public class SerializableArray
 {
-    public int size;
+    public Vector2Int size;
     public ArrayRow[] array;
 
     public SerializableArray(int[,] arr)
     {
-        size = arr.GetLength(0);
-        array = new ArrayRow[size];
-        for (int i=0; i<size; i++)
+        size = new Vector2Int(arr.GetLength(0), arr.GetLength(1));
+        array = new ArrayRow[size.x];
+        for (int i=0; i<size.x; i++)
         {
-            array[i] = new ArrayRow(arr, i, size);
+            array[i] = new ArrayRow(arr, i, size.y);
         }
     }
 
     public int[,] GetArray()
     {
-        int[,] result = new int[size, size];
-        for (int i=0; i<size; i++)
+        int[,] result = new int[size.x, size.y];
+        for (int i=0; i<size.x; i++)
         {
-            for (int j=0; j<size; j++)
+            for (int j=0; j<size.y; j++)
             {
                 result[i, j] = array[i].row[j];
             }
         }
         return result;
+    }
+
+    public Vector2Int GetSize()
+    {
+        return size;
     }
 }
 
@@ -36,10 +42,10 @@ public class ArrayRow
 {
     public int[] row;
 
-    public ArrayRow (int[,] arr, int i, int size)
+    public ArrayRow (int[,] arr, int i, int row_size)
     {
-        row = new int[size];
-        for (int j=0; j<size; j++)
+        row = new int[row_size];
+        for (int j=0; j< row_size; j++)
         {
             row[j] = arr[i, j];
         }

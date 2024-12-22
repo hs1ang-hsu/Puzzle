@@ -18,7 +18,7 @@ public class CalendarPuzzleManager : MonoBehaviour
     // board settings
     public SerializableArray _calendar_puzzle_board;
     private int[,] calendar_puzzle_board;
-    public int grid_num = 7;
+    private Vector2Int board_dim;
     public int removed_limit = 2;
     public float z_depth = 20f;
 
@@ -42,6 +42,7 @@ public class CalendarPuzzleManager : MonoBehaviour
     void Start()
     {
         calendar_puzzle_board = _calendar_puzzle_board.GetArray();
+        board_dim = _calendar_puzzle_board.GetSize();
     }
 
     // Update is called once per frame
@@ -50,7 +51,7 @@ public class CalendarPuzzleManager : MonoBehaviour
         // Initialize board first (grids are also initialized here)
         if (!board.initialized)
         {
-            StartCoroutine(board.InitializeBoard(calendar_puzzle_board, grid_num, removed_limit, z_depth));
+            StartCoroutine(board.InitializeBoard(calendar_puzzle_board, board_dim, removed_limit, z_depth));
         }
         // After grids are initialized, we generate puzzles
         if (!initialized && grid_util.initialized)
@@ -169,23 +170,33 @@ public class CalendarPuzzleManager : MonoBehaviour
 
     public void OnButtonSolveClicked()
     {
-        int[,] state = board.GetPolyominoPuzzleBoardState(out bool is_board_valid, out List<PuzzleType> unused_puzzles);
+        int[,] state = board.GetPolyominoPuzzleBoardState(out bool is_board_valid, out List<Puzzle> unused_puzzles);
         if (!is_board_valid)
         {
             // show dialog
             throw new NotImplementedException();
         }
 
-        
-
-        string s = "";
-        for (int i=0; i<grid_num; i++)
+        List<PolyominoPuzzle> puzzles = new List<PolyominoPuzzle>();
+        foreach (var puzzle in unused_puzzles)
         {
-            for (int j=0; j<grid_num; j++)
-            {
-                s += state[i, j].ToString() + " \n"[(j == grid_num - 1) ? 1 : 0];
-            }
+            puzzles.Add((PolyominoPuzzle) puzzle);
         }
-        Debug.Log(s);
+        StartCoroutine(CalendarPuzzleSolver.Solve(state, puzzles, () =>
+        {
+            foreach (PolyominoPuzzle puzzle in puzzles)
+            {
+                puzzle.UpdateState();
+            }
+            string s = "";
+            for (int i = 0; i < board_dim.x; i++)
+            {
+                for (int j = 0; j < board_dim.y; j++)
+                {
+                    s += (state[i, j] ^ (int)PuzzleType.Polyomino).ToString() + " \n"[(j == board_dim.y - 1) ? 1 : 0];
+                }
+            }
+            Debug.Log(s);
+        }));
     }
 }

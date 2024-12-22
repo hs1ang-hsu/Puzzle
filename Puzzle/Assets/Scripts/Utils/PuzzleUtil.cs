@@ -74,6 +74,7 @@ public class PuzzleUtil : MonoBehaviour
         for (int i=0; i<obj_puzzles.Count; i++)
         {
             obj_puzzles[i].transform.position = grid_util.GetPositionByOrigin(initial_pos[i].x, initial_pos[i].y, z_depth);
+            obj_puzzles[i].GetComponent<Puzzle>().position = new Vector2Int(-1, -1);
         }
     }
 

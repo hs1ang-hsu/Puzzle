@@ -12,7 +12,8 @@ public class Puzzle : MonoBehaviour, ISelectableObject, IPooledObject
 
     // parameters
     [HideInInspector] public int rotation;
-    [HideInInspector] public int flip;
+    [HideInInspector] public bool flip_x;
+    [HideInInspector] public bool flip_y;
     [HideInInspector] public Vector2Int position;
     [HideInInspector] public string obj_name;
     // properties
@@ -32,7 +33,8 @@ public class Puzzle : MonoBehaviour, ISelectableObject, IPooledObject
     {
         // initialize puzzle parameters
         rotation = 0;
-        flip = 0;
+        flip_x = false;
+        flip_y = false;
         position = new Vector2Int(-1, -1);
         this.type = type;
         this.z_depth = z_depth;
@@ -50,12 +52,13 @@ public class Puzzle : MonoBehaviour, ISelectableObject, IPooledObject
         sprite_renderer.color = color;
     }
 
-    public void Rotate()
+    public void Rotate(bool freeze = false)
     {
         rotation = (rotation + 1) % 4;
-        transform.rotation = Quaternion.Euler(0, 0, -rotation * 90);
+        if (!freeze)
+            transform.rotation = Quaternion.Euler(0, 0, -rotation * 90);
+        
         int[,] result = new int[size, size];
-
         for (int i = 0; i < size; i++)
             for (int j = 0; j < size; j++)
                 result[j, size - 1 - i] = shape[i, j];
@@ -67,12 +70,21 @@ public class Puzzle : MonoBehaviour, ISelectableObject, IPooledObject
         ShiftTopLeft();
     }
 
-    public void Flip()
+    public void Flip(bool freeze = false)
     {
         if ((rotation & 1) == 0)
-            sprite_renderer.flipX = !sprite_renderer.flipX;
+        {
+            flip_x = !flip_x;
+            if (!freeze)
+                sprite_renderer.flipX = flip_x;
+        }
         else
-            sprite_renderer.flipY = !sprite_renderer.flipY;
+        {
+            flip_y = !flip_y;
+            if (!freeze)
+                sprite_renderer.flipY = flip_y;
+        }
+
         for (int i = 0; i < size; i++)
         {
             for (int j = 0; j < size / 2; j++)
@@ -175,6 +187,20 @@ public class Puzzle : MonoBehaviour, ISelectableObject, IPooledObject
         y = y * grid_util.grid_width * 0.5f;
         transform.position = grid_util.ToGridPoint(curr_pos.x, curr_pos.y, out int row, out int col, transform.position, z_depth, x, y);
         position.x = row; position.y = col;
+    }
+
+    public void UpdateState()
+    {
+        transform.rotation = Quaternion.Euler(0, 0, -rotation * 90);
+        sprite_renderer.flipX = flip_x;
+        sprite_renderer.flipY = flip_y;
+
+        if (position.x < 0) return;
+        float x = ((rotation & 1) == 0) ? dim.y : dim.x;
+        float y = ((rotation & 1) == 0) ? dim.x : dim.y;
+        x = -x * grid_util.grid_width * 0.5f;
+        y = y * grid_util.grid_width * 0.5f;
+        transform.position = grid_util.GetPosition(position.x, position.y, transform.position, transform.position.z, x, y);
     }
 
     public void UpdateDepth(float z)

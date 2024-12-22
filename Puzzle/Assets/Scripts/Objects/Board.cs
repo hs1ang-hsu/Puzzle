@@ -18,7 +18,7 @@ public class Board : MonoBehaviour
     public GameManager game_manager;
 
     // parameters
-    [HideInInspector] public int grid_num;
+    [HideInInspector] public Vector2Int board_dim;
     [HideInInspector] public int removed_limit;
     [HideInInspector] public float z_depth;
     [HideInInspector] public int[,] grids; // none: -5, removed: -2, empty: -1
@@ -39,20 +39,20 @@ public class Board : MonoBehaviour
     {
     }
 
-    public IEnumerator InitializeBoard(int[,] shape, int grid_num, int removed_limit, float z_depth)
+    public IEnumerator InitializeBoard(int[,] shape, Vector2Int board_dim, int removed_limit, float z_depth)
     {
         // initialize parameters
         this.shape = shape;
-        this.grid_num = grid_num;
+        this.board_dim = board_dim;
         this.removed_limit = removed_limit;
         this.z_depth = z_depth;
 
         // generate grids
-        grid_util.InitializeGrids(grid_num);
+        grid_util.InitializeGrids(board_dim);
         removed_grids = new LRU<Vector2Int>(removed_limit, new Vector2Int(-1,-1));
-        grids = new int[grid_num,grid_num];
-        for (int i = 0; i < grid_num; i++)
-            for (int j = 0; j < grid_num; j++)
+        grids = new int[board_dim.x, board_dim.y];
+        for (int i = 0; i < board_dim.x; i++)
+            for (int j = 0; j < board_dim.y; j++)
                 grids[i, j] = (shape[i,j] == 1) ? (int)BoardState.empty : (int)BoardState.none;
 
         obj_grids = grid_util.GetBoardGrids(shape, transform, z_depth);
@@ -63,9 +63,9 @@ public class Board : MonoBehaviour
     public void ResetBoard()
     {
         removed_grids.Clear();
-        for (int i = 0; i < grid_num; i++)
+        for (int i = 0; i < board_dim.x; i++)
         {
-            for (int j = 0; j < grid_num; j++)
+            for (int j = 0; j < board_dim.y; j++)
             {
                 if (grids[i,j] != (int)BoardState.none)
                 {
@@ -97,9 +97,9 @@ public class Board : MonoBehaviour
 
     public void Selected()
     {
-        for (int i = 0; i < grid_num; i++)
+        for (int i = 0; i < board_dim.x; i++)
         {
-            for (int j = 0; j < grid_num; j++)
+            for (int j = 0; j < board_dim.y; j++)
             {
                 if (grids[i,j] != (int)BoardState.none)
                 {
@@ -111,9 +111,9 @@ public class Board : MonoBehaviour
 
     public void Unselected()
     {
-        for (int i = 0; i < grid_num; i++)
+        for (int i = 0; i < board_dim.x; i++)
         {
-            for (int j = 0; j < grid_num; j++)
+            for (int j = 0; j < board_dim.y; j++)
             {
                 if (grids[i,j] != (int)BoardState.none)
                 {
@@ -135,24 +135,24 @@ public class Board : MonoBehaviour
         obj_grids[x][y].GetComponent<SpriteRenderer>().color = Color.white;
     }
 
-    public int[,] GetPolyominoPuzzleBoardState(out bool is_board_valid, out List<PuzzleType> unused_puzzles)
+    public int[,] GetPolyominoPuzzleBoardState(out bool is_board_valid, out List<Puzzle> unused_puzzles)
     {
         // load current grid state
-        int[,] result = new int[grid_num, grid_num];
-        for (int i=0; i<grid_num; i++)
-            for (int j=0; j<grid_num; j++)
+        int[,] result = new int[board_dim.x, board_dim.y];
+        for (int i = 0; i < board_dim.x; i++)
+            for (int j = 0; j < board_dim.y; j++)
                 result[i, j] = grids[i, j];
 
         // load puzzles on the board
         is_board_valid = true;
-        unused_puzzles = new List<PuzzleType>();
+        unused_puzzles = new List<Puzzle>();
         foreach (var obj_puzzle in puzzle_util.obj_puzzles)
         {
             Puzzle puzzle = obj_puzzle.GetComponent<Puzzle>();
             Vector2Int position = puzzle.position;
             if (position.x < 0)
             {
-                unused_puzzles.Add(puzzle.type);
+                unused_puzzles.Add(puzzle);
                 continue;
             }
 
@@ -165,7 +165,7 @@ public class Board : MonoBehaviour
                     if (puzzle_shape[i, j] == 0) continue;
 
                     int row = position.x + i, col = position.y + j;
-                    if (row >= grid_num || col >= grid_num || result[row, col] != (int)BoardState.empty)
+                    if (row >= board_dim.x || col >= board_dim.y || result[row, col] != (int)BoardState.empty)
                     {
                         is_board_valid = false;
                         return result;

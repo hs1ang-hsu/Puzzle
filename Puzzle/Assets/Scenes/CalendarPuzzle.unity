@@ -315,7 +315,7 @@ MonoBehaviour:
   game_manager: {fileID: 1841920025}
   board: {fileID: 985780891}
   _calendar_puzzle_board:
-    size: 7
+    size: {x: 7, y: 7}
     array:
     - row: 01000000010000000100000001000000010000000100000000000000
     - row: 01000000010000000100000001000000010000000100000000000000
@@ -324,7 +324,6 @@ MonoBehaviour:
     - row: 01000000010000000100000001000000010000000100000001000000
     - row: 01000000010000000100000001000000010000000100000001000000
     - row: 01000000010000000100000000000000000000000000000000000000
-  grid_num: 7
   removed_limit: 2
   z_depth: 20
   required_puzzle_types: 0700010008000100090001000b0001000c0001000f0001001000010011000100
@@ -492,7 +491,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   initialized: 0
-  grid_num: 7
+  board_dim: {x: 0, y: 0}
   image_size: 2.56
   grid_width: 0
   object_pooler: {fileID: 1703721103}
@@ -1361,7 +1360,7 @@ MonoBehaviour:
   grid_util: {fileID: 583020476}
   puzzle_util: {fileID: 1206310223}
   game_manager: {fileID: 1841920025}
-  grid_num: 7
+  board_dim: {x: 0, y: 0}
   removed_limit: 2
   z_depth: 20
   initialized: 0

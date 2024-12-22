@@ -13,13 +13,14 @@ public class GridUtil : MonoBehaviour
 
     // grid properties
     [HideInInspector] public bool initialized = false;
-    public int grid_num = 7;
+    [HideInInspector] public Vector2Int board_dim;
     private Vector3 UL, UR, BL, BR;
     private float L, R, B, U;
     private float board_width;
+    private float board_height;
     public float image_size = 2.56f;
     [HideInInspector] public float grid_width = 64;
-    private float grid_width_scale;
+    [HideInInspector] public float grid_width_scale;
     private List<List<Vector3>> grids_pos;
     private float z_depth = 20f;
 
@@ -44,26 +45,28 @@ public class GridUtil : MonoBehaviour
     {
     }
 
-    public void InitializeGrids(int grid_num)
+    public void InitializeGrids(Vector2Int board_dim)
     {
-        this.grid_num = grid_num;
+        this.board_dim = board_dim;
         // Initialize grid
-        grids_pos = new List<List<Vector3>>(grid_num);
-        for (int i = 0; i < grid_num; i++)
+        grids_pos = new List<List<Vector3>>(board_dim.x);
+        for (int i = 0; i < board_dim.x; i++)
         {
-            grids_pos.Add(new List<Vector3>(grid_num));
-            for (int j = 0; j < grid_num; j++)
+            grids_pos.Add(new List<Vector3>(board_dim.y));
+            for (int j = 0; j < board_dim.y; j++)
             {
                 grids_pos[i].Add(Vector3.zero);
             }
         }
 
-        board_width = screen_height * 0.55f;
-        grid_width = board_width / (float)grid_num;
+        board_height = screen_height * 0.55f;
+        grid_width = board_height / (float)board_dim.x;
+        board_width = board_dim.y * grid_width;
+
         L = 0.08f * screen_width;
-        B = ((float)screen_height - board_width) * 0.6f;
+        B = ((float)screen_height - board_height) * 0.6f;
         R = L + board_width;
-        U = B + board_width;
+        U = B + board_height;
         UL = new Vector3(L, U, 15);
         UR = new Vector3(R, U, 15);
         BL = new Vector3(L, B, 15);
@@ -75,36 +78,25 @@ public class GridUtil : MonoBehaviour
 
     private void InitiailizeGridsPos()
     {
-        float dt = 1 / (float)grid_num;
-        for (int t = 0; t < grid_num; t++)
+        float dx = 1 / (float)board_dim.x, dy = 1 / (float)board_dim.y;
+        for (int x = 0; x < board_dim.x; x++)
         {
-            Vector3 row = Vector3.Lerp(UL, BL, dt * t), col = Vector3.Lerp(BL, BR, dt * t);
-            for (int i = 0; i < grid_num; i++)
+            Vector3 row = Vector3.Lerp(UL, BL, dx * x);
+            for (int y = 0; y < board_dim.y; y++)
             {
-                grids_pos[t][i] = new Vector3(grids_pos[t][i].x, row.y, 0f);
-                grids_pos[i][t] = new Vector3(col.x, grids_pos[i][t].y, 0f);
+                Vector3 col = Vector3.Lerp(BL, BR, dy * y);
+                grids_pos[x][y] = new Vector3(col.x, row.y, 0f);
             }
         }
 
         grid_width_scale = ScreenToWorld(grid_width) / image_size;
-        for (int i = 0; i < grid_num; i++)
-            for (int j = 0; j < grid_num; j++)
+        for (int i = 0; i < board_dim.x; i++)
+            for (int j = 0; j < board_dim.y; j++)
             {
                 grids_pos[i][j] = Camera.main.ScreenToWorldPoint(grids_pos[i][j]);
                 grids_pos[i][j] = new Vector3(grids_pos[i][j].x, grids_pos[i][j].y, z_depth);
             }
         initialized = true;
-    }
-
-    private void DebugDrawBoard()
-    {
-        float dt = 1 / (float)grid_num;
-        for (int t = 0; t < grid_num; t++)
-        {
-            Vector3 row = Vector3.Lerp(UL, BL, dt * t), col = Vector3.Lerp(BL, BR, dt * t);
-            Debug.DrawLine(Camera.main.ScreenToWorldPoint(row), Camera.main.ScreenToWorldPoint(row + new Vector3(board_width, 0, 0)));
-            Debug.DrawLine(Camera.main.ScreenToWorldPoint(col), Camera.main.ScreenToWorldPoint(col + new Vector3(0, board_width, 0)));
-        }
     }
 
     public Vector3 GetPositionByOrigin(float x, float y, float z=-1)
@@ -115,12 +107,12 @@ public class GridUtil : MonoBehaviour
         return result;
     }
 
-    public Vector3 GetPosition(int row, int col, Vector3 point, float z=-1)
+    public Vector3 GetPosition(int row, int col, Vector3 point, float z=-1, float shift_x = 0f, float shift_y = 0f)
     {
         if (!initialized) Debug.LogError("The grids are not initialized!");
 
-        if (row < 0 || row >= grid_num || col < 0 || col >= grid_num) return point;
-        Vector3 result = grids_pos[row][col];
+        if (row < 0 || row >= board_dim.x || col < 0 || col >= board_dim.y) return point;
+        Vector3 result = Camera.main.ScreenToWorldPoint(new Vector3(L + grid_width * col - shift_x, U - grid_width * row - shift_y, 0f));
         result.z = (z < 0) ? z_depth : z;
         return result;
     }
@@ -160,10 +152,10 @@ public class GridUtil : MonoBehaviour
         if (!initialized) Debug.LogError("The grids are not initialized!");
 
         List<List<GameObject>> obj_grids = new List<List<GameObject>>();
-        for (int i = 0; i < grid_num; i++)
+        for (int i = 0; i < board_dim.x; i++)
         {
             obj_grids.Add(new List<GameObject>());
-            for (int j = 0; j < grid_num; j++)
+            for (int j = 0; j < board_dim.y; j++)
             {
                 if (shape[i,j] == 0)
                 {
@@ -185,7 +177,7 @@ public class GridUtil : MonoBehaviour
     {
         if (!initialized) Debug.LogError("The grids are not initialized!");
         int n = puzzle.size;
-        if (n >= grid_num) Debug.LogError("The puzzle is larger than the board!");
+        if (n >= board_dim.x) Debug.LogError("The puzzle is larger than the board!");
 
         Vector3 reference = grids_pos[0][0];
         List<List<GameObject>> obj_puzzle_grids = new List<List<GameObject>>();

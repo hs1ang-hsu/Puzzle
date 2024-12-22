@@ -74,9 +74,10 @@ public class PolyominoPuzzle : Puzzle
         return new Vector2(0f, 0f);
     }
 
-    public new void Rotate()
+    public new void Rotate(bool freeze = false)
     {
-        base.Rotate();
+        base.Rotate(freeze);
+        if (freeze) return;
 
         UpdateMesh();
         if (dim.x != dim.y)
@@ -86,9 +87,10 @@ public class PolyominoPuzzle : Puzzle
         }
     }
 
-    public new void Flip()
+    public new void Flip(bool freeze = false)
     {
-        base.Flip();
+        base.Flip(freeze);
+        if (freeze) return;
 
         UpdateMesh();
     }
@@ -100,37 +102,28 @@ public class PolyominoPuzzle : Puzzle
         curr_pos.y += grid_shift * grid_util.grid_width;
         transform.position = Camera.main.ScreenToWorldPoint(curr_pos);
     }
+    
+    public new void UpdateState()
+    {
+        base.UpdateState();
+        UpdateMesh();
+    }
 
-
-    //void OnMouseDown()
-    //{
-    //    if (game_manager.edit_board_mode) return;
-    //    offset = gameObject.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f));
-    //}
-
-    //void OnMouseDrag()
-    //{
-    //    if (game_manager.edit_board_mode) return;
-    //    Vector3 pos = offset + Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f));
-    //    pos.z = z_depth;
-    //    transform.position = pos;
-    //}
-
-    //void OnMouseUp()
-    //{
-    //    if (game_manager.edit_board_mode) return;
-    //    MoveToGridPoint();
-    //}
-
-    //private void MoveToGridPoint()
-    //{
-    //    Vector3 curr_pos = Camera.main.WorldToScreenPoint(transform.position);
-    //    float x = ((rotation & 1) == 0) ? dim.y : dim.x;
-    //    float y = ((rotation & 1) == 0) ? dim.x : dim.y;
-    //    x = -x * grid_util.grid_width * 0.5f;
-    //    y = y * grid_util.grid_width * 0.5f;
-    //    transform.position = grid_util.ToGridPoint(curr_pos.x, curr_pos.y, out int row, out int col, transform.position, z_depth, x, y);
-    //    position.x = row; position.y = col;
-    //}
+    public int GetChessState()
+    {
+        int black = 0, white = 0;
+        for (int i=0; i<size; i++)
+        {
+            for (int j=0; j<size; j++)
+            {
+                if (shape[i, j] != 0)
+                {
+                    if (((i ^ j) & 1) == 0) black++;
+                    else white++;
+                }
+            }
+        }
+        return Mathf.Abs(black - white);
+    }
 }
 
