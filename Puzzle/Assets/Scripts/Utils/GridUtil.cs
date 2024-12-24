@@ -1,9 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Pool;
-using static UnityEditor.Searcher.SearcherWindow.Alignment;
-using static UnityEngine.Rendering.DebugUI.Table;
-using static UnityEngine.UI.Image;
 
 public class GridUtil : MonoBehaviour
 {

@@ -6,6 +6,7 @@ public class GameManager : MonoBehaviour
 {
     public bool editor_mode = false;
     public bool edit_board_mode = false;
+    public bool freeze_all = false;
 
     private void Awake()
     {

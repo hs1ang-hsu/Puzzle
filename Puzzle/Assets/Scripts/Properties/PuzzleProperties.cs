@@ -93,7 +93,7 @@ public static class PuzzleProperties
             size = 3,
             dim = new Vector2Int(3, 2),
             grid_num = 5,
-            color = MyColorPalette.SpringGreen
+            color = MyColorPalette.Orchid
         },
         [PuzzleType.T5] = new PuzzleProperty
         {
@@ -117,7 +117,7 @@ public static class PuzzleProperties
             size = 3,
             dim = new Vector2Int(3, 3),
             grid_num = 5,
-            color = MyColorPalette.Torquoise
+            color = MyColorPalette.Peru
         },
         [PuzzleType.W5] = new PuzzleProperty
         {

@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Unity.Burst.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,10 +29,17 @@ public class CalendarPuzzleManager : MonoBehaviour
     public List<PuzzleType> required_puzzle_types;
     public List<Vector2> initial_pos;
 
-    // mouse events
+    // puzzle solver
+    private CalendarPuzzleSolver calendar_puzzle_solver;
+    private bool is_solver_finished;
+
+    // UI
     public Image img_edit_board;
+    public Button btn_edit_board;
     public Button btn_rotate;
     public Button btn_flip;
+    public Button btn_solve;
+    public GameObject LoadingPanel;
 
     [HideInInspector]
     public Transform selected = null;
@@ -41,6 +50,8 @@ public class CalendarPuzzleManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        calendar_puzzle_solver = new CalendarPuzzleSolver();
+        is_solver_finished = false;
         calendar_puzzle_board = _calendar_puzzle_board.GetArray();
         board_dim = _calendar_puzzle_board.GetSize();
     }
@@ -53,16 +64,19 @@ public class CalendarPuzzleManager : MonoBehaviour
         {
             StartCoroutine(board.InitializeBoard(calendar_puzzle_board, board_dim, removed_limit, z_depth));
         }
+
         // After grids are initialized, we generate puzzles
         if (!initialized && grid_util.initialized)
         {
             initialized = true;
             puzzle_util.GeneratePuzzles(required_puzzle_types, initial_pos);
         }
-        btn_rotate.gameObject.SetActive(selected != null && selected.CompareTag("puzzle"));
-        btn_flip.gameObject.SetActive(selected != null && selected.CompareTag("puzzle"));
 
-        if (Input.GetMouseButtonDown(0))
+        // Update UI
+        UpdateUI();
+
+        // Mouse events
+        if (!game_manager.freeze_all && Input.GetMouseButtonDown(0))
         {
             Vector3 mouse_pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             RaycastHit2D[] hits = Physics2D.RaycastAll(mouse_pos, Vector2.zero);
@@ -81,6 +95,31 @@ public class CalendarPuzzleManager : MonoBehaviour
                 OnRaycastHit(hits[0]);
             }
         }
+
+        // Update puzzles when solver is finished
+        if (is_solver_finished)
+        {
+            foreach (PolyominoPuzzle puzzle in calendar_puzzle_solver.puzzles)
+            {
+                puzzle.UpdateState();
+            }
+            game_manager.freeze_all = false;
+            is_solver_finished = false;
+            Debug.Log("Finished");
+        }
+    }
+
+    private void UpdateUI()
+    {
+        //LoadingPanel.SetActive(game_manager.freeze_all);
+        btn_edit_board.interactable = !game_manager.freeze_all;
+        btn_rotate.interactable = !game_manager.freeze_all;
+        btn_flip.interactable = !game_manager.freeze_all;
+        btn_solve.interactable = !game_manager.freeze_all;
+
+        btn_rotate.gameObject.SetActive(selected != null && selected.CompareTag("puzzle"));
+        btn_flip.gameObject.SetActive(selected != null && selected.CompareTag("puzzle"));
+        btn_solve.gameObject.SetActive(!game_manager.edit_board_mode);
     }
 
     private void UnSelectedObject(Transform new_selected)
@@ -182,21 +221,19 @@ public class CalendarPuzzleManager : MonoBehaviour
         {
             puzzles.Add((PolyominoPuzzle) puzzle);
         }
-        StartCoroutine(CalendarPuzzleSolver.Solve(state, puzzles, () =>
-        {
-            foreach (PolyominoPuzzle puzzle in puzzles)
-            {
-                puzzle.UpdateState();
-            }
-            string s = "";
-            for (int i = 0; i < board_dim.x; i++)
-            {
-                for (int j = 0; j < board_dim.y; j++)
-                {
-                    s += (state[i, j] ^ (int)PuzzleType.Polyomino).ToString() + " \n"[(j == board_dim.y - 1) ? 1 : 0];
-                }
-            }
-            Debug.Log(s);
-        }));
+
+        Debug.Log("Start solving");
+        game_manager.freeze_all = true;
+        calendar_puzzle_solver.Solve(state, puzzles);
+        is_solver_finished = true;
+
+        //Thread t = new Thread(() => RunSolver(state, puzzles));
+        //t.Start();
+    }
+
+    private void RunSolver(int[,] state, List<PolyominoPuzzle> puzzles)
+    {
+        calendar_puzzle_solver.Solve(state, puzzles);
+        is_solver_finished = true;
     }
 }

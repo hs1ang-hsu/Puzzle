@@ -160,13 +160,13 @@ public class Puzzle : MonoBehaviour, ISelectableObject, IPooledObject
 
     void OnMouseDown()
     {
-        if (game_manager.edit_board_mode) return;
+        if (game_manager.freeze_all || game_manager.edit_board_mode) return;
         offset = gameObject.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f));
     }
 
     void OnMouseDrag()
     {
-        if (game_manager.edit_board_mode) return;
+        if (game_manager.freeze_all || game_manager.edit_board_mode) return;
         Vector3 pos = offset + Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f));
         pos.z = z_depth;
         transform.position = pos;
@@ -174,7 +174,7 @@ public class Puzzle : MonoBehaviour, ISelectableObject, IPooledObject
 
     void OnMouseUp()
     {
-        if (game_manager.edit_board_mode) return;
+        if (game_manager.freeze_all || game_manager.edit_board_mode) return;
         MoveToGridPoint();
     }
 
