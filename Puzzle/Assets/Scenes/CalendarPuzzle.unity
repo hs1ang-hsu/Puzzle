@@ -345,6 +345,7 @@ MonoBehaviour:
   - {x: 6, y: -4}
   - {x: 10, y: 4}
   - {x: 10, y: 0}
+  obj_camera: {fileID: 519420028}
   img_edit_board: {fileID: 1284511730}
   btn_edit_board: {fileID: 1284511729}
   btn_rotate: {fileID: 2115509008}

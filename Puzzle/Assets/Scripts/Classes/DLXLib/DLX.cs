@@ -19,6 +19,7 @@ namespace DLXLib
         public bool Solved { get; private set; }
 
         public int iteration = 0;
+        private int speed = 1000;
 
         public DLX(bool[][] matrix)
         {
@@ -28,15 +29,20 @@ namespace DLXLib
             Solved = false;
         }
 
-        public void Search(int k)
+        public IEnumerator Search(int k)
         {
             if (Matrix.Empty())
             {
                 Solved = true;
-                return;
+                yield break;
             }
 
             iteration++;
+            if (iteration % speed == 0)
+            {
+                yield return null;
+            }
+
             Header min_column_header = Matrix.GetMinColumn();
             Matrix.CoverColumn(min_column_header);
 
@@ -46,11 +52,18 @@ namespace DLXLib
                 for (Node node = node_row.Right; node != node_row; node = node.Right)
                     Matrix.CoverColumn(node.ColumnHeader);
 
-                Search(k + 1);
+                IEnumerator search = Search(k + 1);
+                while (search.MoveNext())
+                {
+                    if (iteration % speed == 0)
+                    {
+                        yield return null;
+                    }
+                }
                 
                 if (Solved)
                 {
-                    return;
+                    yield break;
                 }
                 
                 for (Node node = node_row.Right; node != node_row; node = node.Right)

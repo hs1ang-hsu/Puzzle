@@ -2,10 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using Unity.Burst.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,7 +27,12 @@ public class CalendarPuzzleManager : MonoBehaviour
 
     // puzzle solver
     private CalendarPuzzleSolver calendar_puzzle_solver;
-    private bool is_solver_finished;
+
+    // screen size
+    public GameObject obj_camera;
+    private Vector2 resolution;
+    private bool alive = true;
+    private float check_delay = 0.5f;
 
     // UI
     public Image img_edit_board;
@@ -51,9 +52,9 @@ public class CalendarPuzzleManager : MonoBehaviour
     void Start()
     {
         calendar_puzzle_solver = new CalendarPuzzleSolver();
-        is_solver_finished = false;
         calendar_puzzle_board = _calendar_puzzle_board.GetArray();
         board_dim = _calendar_puzzle_board.GetSize();
+        StartCoroutine(DetectScreenSizeChanged());
     }
 
     // Update is called once per frame
@@ -95,23 +96,29 @@ public class CalendarPuzzleManager : MonoBehaviour
                 OnRaycastHit(hits[0]);
             }
         }
+    }
 
-        // Update puzzles when solver is finished
-        if (is_solver_finished)
+    private IEnumerator DetectScreenSizeChanged()
+    {
+        resolution = new Vector2(Screen.width, Screen.height);
+        while (alive)
         {
-            foreach (PolyominoPuzzle puzzle in calendar_puzzle_solver.puzzles)
+            // Check for resolution change
+            if (resolution.x != Screen.width || resolution.y != Screen.height)
             {
-                puzzle.UpdateState();
+                obj_camera.GetComponent<CameraManager>().InitializeResolution();
+                resolution = new Vector2(Screen.width, Screen.height);
+                grid_util.OnScreenSizeChanged();
+                board.ResetBoard(true);
+                puzzle_util.OnScreenSizeChanged();
             }
-            game_manager.freeze_all = false;
-            is_solver_finished = false;
-            Debug.Log("Finished");
+            yield return new WaitForSeconds(check_delay);
         }
     }
 
     private void UpdateUI()
     {
-        //LoadingPanel.SetActive(game_manager.freeze_all);
+        LoadingPanel.SetActive(game_manager.freeze_all);
         btn_edit_board.interactable = !game_manager.freeze_all;
         btn_rotate.interactable = !game_manager.freeze_all;
         btn_flip.interactable = !game_manager.freeze_all;
@@ -224,16 +231,18 @@ public class CalendarPuzzleManager : MonoBehaviour
 
         Debug.Log("Start solving");
         game_manager.freeze_all = true;
-        calendar_puzzle_solver.Solve(state, puzzles);
-        is_solver_finished = true;
-
-        //Thread t = new Thread(() => RunSolver(state, puzzles));
-        //t.Start();
+        StartCoroutine(calendar_puzzle_solver.Solve(state, puzzles, () =>
+        {
+            foreach (PolyominoPuzzle puzzle in calendar_puzzle_solver.puzzles)
+            {
+                puzzle.UpdateState();
+            }
+            game_manager.freeze_all = false;
+        }));
     }
 
-    private void RunSolver(int[,] state, List<PolyominoPuzzle> puzzles)
+    private void OnDestroy()
     {
-        calendar_puzzle_solver.Solve(state, puzzles);
-        is_solver_finished = true;
+        alive = false;
     }
 }

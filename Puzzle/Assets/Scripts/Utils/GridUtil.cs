@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,9 +16,9 @@ public class GridUtil : MonoBehaviour
     private float board_width;
     private float board_height;
     public float image_size = 2.56f;
-    [HideInInspector] public float grid_width = 64;
+    [HideInInspector] public float grid_width = 64f;
     [HideInInspector] public float grid_width_scale;
-    private List<List<Vector3>> grids_pos;
+    public List<List<Vector3>> grids_pos;
     private float z_depth = 20f;
 
     // gameObject
@@ -29,7 +30,6 @@ public class GridUtil : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // Initialize parameters
         screen_width = (float)Screen.width;
         screen_height = (float)Screen.height;
         Vector3 coord_ratio = Camera.main.ScreenToWorldPoint(new Vector3((float)screen_width / 2f + 1f, 0f, 0f));
@@ -39,6 +39,16 @@ public class GridUtil : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+    }
+
+    public void OnScreenSizeChanged()
+    {
+        // Initialize parameters
+        screen_width = Screen.width;
+        screen_height = Screen.height;
+        Vector3 coord_ratio = Camera.main.ScreenToWorldPoint(new Vector3((float)screen_width / 2f + 1f, 0f, 0f));
+        ratio = coord_ratio.x;
+        InitializeGrids(board_dim);
     }
 
     public void InitializeGrids(Vector2Int board_dim)
@@ -86,6 +96,7 @@ public class GridUtil : MonoBehaviour
         }
 
         grid_width_scale = ScreenToWorld(grid_width) / image_size;
+        Debug.Log(grid_width_scale);
         for (int i = 0; i < board_dim.x; i++)
             for (int j = 0; j < board_dim.y; j++)
             {

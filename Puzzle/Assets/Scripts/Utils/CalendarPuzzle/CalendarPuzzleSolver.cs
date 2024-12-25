@@ -225,7 +225,8 @@ public class CalendarPuzzleSolver
         Debug.Log(s);
     }
 
-    public void Solve(int[,] initial_state, List<PolyominoPuzzle> input_puzzles)
+    // Recursive IEnumerator work around: https://gamedev.stackexchange.com/questions/150940/recursive-unity-coroutine
+    public IEnumerator Solve(int[,] initial_state, List<PolyominoPuzzle> input_puzzles, System.Action callback = null)
     {
         // initialize
         matrix = new List<bool[]>();
@@ -245,11 +246,11 @@ public class CalendarPuzzleSolver
         // setup matrix
         SetupMatrix(initial_state);
         bool[][] matrix_arr = matrix.ToArray();
-        Debug.Log("Matrix setup finished");
+        yield return null;
 
         // solve
         DLXLib.DLX solver = new DLXLib.DLX(matrix_arr);
-        solver.Search(0);
+        yield return solver.Search(0);
         Debug.Log("Iterations: " + solver.iteration.ToString());
 
         // get solution and update puzzles
@@ -259,5 +260,7 @@ public class CalendarPuzzleSolver
         {
             UpdatePuzzlesWithSolution(solution);
         }
+        callback?.Invoke();
+        yield return null;
     }
 }

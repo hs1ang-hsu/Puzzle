@@ -60,7 +60,7 @@ public class Board : MonoBehaviour
         yield break;
     }
 
-    public void ResetBoard()
+    public void ResetBoard(bool reset_resolution = false)
     {
         removed_grids.Clear();
         for (int i = 0; i < board_dim.x; i++)
@@ -70,6 +70,12 @@ public class Board : MonoBehaviour
                 if (grids[i,j] != (int)BoardState.none)
                 {
                     RecoverGrid(i, j);
+                    if (reset_resolution)
+                    {
+                        obj_grids[i][j].transform.position =
+                            new Vector3(grid_util.grids_pos[i][j].x, grid_util.grids_pos[i][j].y, z_depth);
+                        obj_grids[i][j].transform.localScale = grid_util.GetGridScale();
+                    }
                 }
             }
         }

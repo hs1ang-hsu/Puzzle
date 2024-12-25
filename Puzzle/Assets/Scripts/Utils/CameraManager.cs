@@ -7,6 +7,17 @@ public class CameraManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        InitializeResolution();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    public void InitializeResolution()
+    {
         float target_aspect = 1920f / 1080f;
         float window_aspect = (float)Screen.width / (float)Screen.height;
         float scale_height = window_aspect / target_aspect;
@@ -34,11 +45,5 @@ public class CameraManager : MonoBehaviour
 
             camera.rect = rect;
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

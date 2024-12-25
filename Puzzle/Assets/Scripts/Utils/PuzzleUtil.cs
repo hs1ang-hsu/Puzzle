@@ -69,6 +69,15 @@ public class PuzzleUtil : MonoBehaviour
         yield break;
     }
 
+    public void OnScreenSizeChanged()
+    {
+        for (int i = 0; i < obj_puzzles.Count; i++)
+        {
+            obj_puzzles[i].transform.localScale = grid_util.GetGridScale();
+            obj_puzzles[i].GetComponent<Puzzle>().UpdateState();
+        }
+    }
+
     public void InitializePuzzlePos()
     {
         for (int i=0; i<obj_puzzles.Count; i++)
